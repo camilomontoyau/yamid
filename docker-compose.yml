@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    container_name: app
+    ports:
+      - '4000:4000'
+    links:
+      - mongocontainer
+    depends_on:
+      - mongocontainer
+    networks:
+      - default
+      - yamid
+  mongocontainer:
+    image: 'mongo:3.6.4'
+    container_name: mongocontainer
+    ports:
+      - '27999:27017'
+    volumes:
+      - /data/db/yamid/app:/data/db
+    networks:
+      - default
+      - yamid
+networks:
+  yamid:
+    external: true
