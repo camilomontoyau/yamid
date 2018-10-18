@@ -29,32 +29,43 @@ server
   .use(restify.plugins.bodyParser())
   .use(restify.plugins.queryParser({ mapParams: false }));
 
-// Conexion DB
-mongoose.connect(
-  'mongodb://localhost/yamid',
-  (err, res) => {
-    if (err) {
-      console.log('+++++++++++++++++++++++++++++++++++++++++');
-      console.log('Base de datos: OFFLINE');
-      console.log('+++++++++++++++++++++++++++++++++++++++++');
-      console.log('err', err);
-      throw err;
+var connectWithRetry = function() {
+  return mongoose.connect(
+    'mongodb://mongocontainer/yamid',
+    (err, res) => {
+      if (err) {
+        console.log('+++++++++++++++++++++++++++++++++++++++++');
+        console.log('Base de datos: OFFLINE');
+        console.log('+++++++++++++++++++++++++++++++++++++++++');
+        console.log('err', err);
+        setTimeout(() => {
+          console.log('+++++++++++++++++++++++++++++++++++++++++');
+          console.log('reintentando conexion con DB');
+          console.log('+++++++++++++++++++++++++++++++++++++++++');
+          connectWithRetry();
+        }, 5000);
+      }
+      console.log('********************************************');
+      console.log('Base de datos: ONLINE');
+      console.log('********************************************');
     }
-    console.log('********************************************');
-    console.log('Base de datos: ONLINE');
-    console.log('********************************************');
-  }
-);
+  );
+};
+connectWithRetry();
 
 server.get('/', (req, res) => {
+  console.log('********************************************');
+  console.log('request al endpoint /');
+  console.log('********************************************');
   return res.send({ ok: true, data: 'Bienvenido!!!!' });
 });
 
+const port = 4000;
 // Configuracion del Servidor
-server.listen(4000, 'localhost', () => {
+server.listen(port, () => {
   console.log('********************************************');
   console.log('Servidor encendido: ', server.url);
-  console.log('Escuchando puerto: ', process.env.PORT);
+  console.log('Escuchando puerto: ', port);
   console.log('********************************************');
 });
 
